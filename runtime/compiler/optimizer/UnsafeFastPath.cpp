@@ -18,6 +18,7 @@
  * [2] https://openjdk.org/legal/assembly-exception.html
  *
  * SPDX-License-Identifier: EPL-2.0 OR Apache-2.0 OR GPL-2.0-only WITH Classpath-exception-2.0 OR GPL-2.0-only WITH OpenJDK-assembly-exception-1.0
+ * Assisted-by: Grok 4.7
  *******************************************************************************/
 
 #include "optimizer/UnsafeFastPath.hpp"
@@ -285,7 +286,7 @@ bool TR_UnsafeFastPath::tryTransformUnsafeAtomicCallInVarHandleAccessMethod(TR::
     TR::MethodSymbol *symbol = node->getSymbol()->castToMethodSymbol();
     // Codegen will inline the call with the flag
     //
-    if (symbol->getMethod()->isUnsafeCAS()) {
+    if (TR_J9MethodBase::isUnsafeCAS(symbol->getMethod()->getRecognizedMethod())) {
         // codegen doesn't optimize CAS on a static field
         //
         if (isVarHandleOperationMethodOnNonStaticField(callerMethod)
@@ -494,7 +495,8 @@ int32_t TR_UnsafeFastPath::perform()
                     recognizedVarHandleOpMethod = caller;
 
                 if (isVarHandleOperationMethod(caller)
-                    && (isTransformableUnsafeAtomic(comp(), callee) || symbol->getMethod()->isUnsafeCAS())) {
+                    && (isTransformableUnsafeAtomic(comp(), callee)
+                        || TR_J9MethodBase::isUnsafeCAS(symbol->getMethod()->getRecognizedMethod()))) {
                     if (tryTransformUnsafeAtomicCallInVarHandleAccessMethod(tt, caller, callee)) {
                         transformed.add(node);
                         continue;

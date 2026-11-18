@@ -19,6 +19,7 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR Apache-2.0 OR GPL-2.0-only WITH Classpath-exception-2.0 OR GPL-2.0-only WITH OpenJDK-assembly-exception-1.0
  * Assisted-by: IBM Bob
+ * Assisted-by: Grok 4.7
  *******************************************************************************/
 #include <algorithm>
 #include "j9cfg.h"
@@ -2750,7 +2751,7 @@ bool TR_J9InlinerPolicy::isInlineableJNI(TR_ResolvedMethod *method, TR::Node *ca
             && !comp->fej9()->traceableMethodsCanBeInlined()))
         return false;
 
-    if (method->convertToMethod()->isUnsafeWithObjectArg() || method->convertToMethod()->isUnsafeCAS()) {
+    if (TR_J9MethodBase::isUnsafeWithObjectArg(recognizedMethod) || TR_J9MethodBase::isUnsafeCAS(recognizedMethod)) {
         // In Java9 sun/misc/Unsafe methods are simple Java wrappers to JNI
         // methods in jdk.internal, and the enum values above match both. Only
         // return true for the methods that are native.

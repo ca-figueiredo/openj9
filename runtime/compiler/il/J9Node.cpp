@@ -18,6 +18,7 @@
  * [2] https://openjdk.org/legal/assembly-exception.html
  *
  * SPDX-License-Identifier: EPL-2.0 OR Apache-2.0 OR GPL-2.0-only WITH Classpath-exception-2.0 OR GPL-2.0-only WITH OpenJDK-assembly-exception-1.0
+ * Assisted-by: Grok 4.7
  *******************************************************************************/
 
 #include "j9cfg.h"
@@ -36,6 +37,7 @@
 #include "env/CHTable.hpp"
 #include "env/PersistentCHTable.hpp"
 #include "env/VMJ9.h"
+#include "env/j9method.h"
 
 #ifdef TR_TARGET_S390
 #include "z/codegen/S390Register.hpp"
@@ -1923,7 +1925,8 @@ bool J9::Node::isUnsafeGetPutCASCallOnNonArray()
     if (!symbol)
         return false;
 
-    TR_ASSERT(symbol->getMethod()->isUnsafeWithObjectArg() || symbol->getMethod()->isUnsafeCAS(),
+    TR_ASSERT(TR_J9MethodBase::isUnsafeWithObjectArg(symbol->getMethod()->getRecognizedMethod())
+            || TR_J9MethodBase::isUnsafeCAS(symbol->getMethod()->getRecognizedMethod()),
         "Attempt to check flag on a method that is not JNI Unsafe that needs special care for arraylets\n");
     return _flags.testAny(unsafeGetPutOnNonArray);
 }
@@ -1935,8 +1938,10 @@ void J9::Node::setUnsafeGetPutCASCallOnNonArray(TR::Compilation *comp)
     TR_ASSERT(self()->getSymbol()->isMethod() && self()->getSymbol()->getMethodSymbol(),
         "setUnsafeGetPutCASCallOnNonArray called on node which is not a call");
 
-    TR_ASSERT(self()->getSymbol()->getMethodSymbol()->getMethod()->isUnsafeWithObjectArg()
-            || self()->getSymbol()->getMethodSymbol()->getMethod()->isUnsafeCAS(),
+    TR_ASSERT(TR_J9MethodBase::isUnsafeWithObjectArg(
+                  self()->getSymbol()->getMethodSymbol()->getMethod()->getRecognizedMethod())
+            || TR_J9MethodBase::isUnsafeCAS(
+                self()->getSymbol()->getMethodSymbol()->getMethod()->getRecognizedMethod()),
         "Attempt to check flag on a method that is not JNI Unsafe that needs special care for arraylets\n");
 
     if (performNodeTransformation1(comp, "O^O NODE FLAGS: Setting unsafeGetPutOnNonArray flag on node %p\n", self()))
